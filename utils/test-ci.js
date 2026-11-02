@@ -20,7 +20,7 @@ for (const file of roots.flatMap(specs)) {
     if (excluded[file]) { console.log('SKIP ' + file + ': ' + excluded[file]); continue; }
     console.log('SUITE ' + file);
     const result = spawnSync(process.execPath, [require.resolve('mocha/bin/_mocha'), '--exit',
-        '--timeout', '10000', '--reporter', 'dot', file], { stdio: 'inherit', timeout: 300000 });
+        '--require', 'chai/register-should', '--timeout', '10000', '--reporter', 'dot', file], { stdio: 'inherit', timeout: 300000 });
     if (result.status !== 0) failed.push(file);
 }
 console.log('Failed suites: ' + JSON.stringify(failed));

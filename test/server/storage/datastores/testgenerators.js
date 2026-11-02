@@ -402,7 +402,8 @@ function genCreateOpenDeleteRenameProject(databaseAdapter, Q, expect) {
                 throw new Error('should have failed!');
             })
             .catch(function (err) {
-                expect(err.message).to.contain('Project does not exist project9');
+                // MongoDB 4.4 uses NamespaceNotFound wording for renameCollection.
+                expect(err.message).to.match(/Project does not exist project9|Source collection .*\.project9 does not exist/);
             })
             .nodeify(done);
     });

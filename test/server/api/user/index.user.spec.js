@@ -301,7 +301,7 @@ describe('USER REST API', function () {
             it('should use guest account with no password and no username basic authentication GET /api/v1/user',
                 function (done) {
                     agent.get(server.getUrl() + '/api/v1/user')
-                        .set('Authorization', 'Basic ' + new Buffer('').toString('base64'))
+                        .set('Authorization', 'Basic ' + Buffer.from(':').toString('base64'))
                         .end(function (err, res) {
                             expect(res.status).equal(200, err);
                             expect(res.body._id).to.equal('guest');
@@ -2291,7 +2291,7 @@ describe('USER REST API', function () {
 
             it('should 401 basic authentication empty user and password /api/v1/user', function (done) {
                 agent.del(server.getUrl() + '/api/v1/users/doesNotExist/settings/comp')
-                    .set('Authorization', 'Basic ' + new Buffer('').toString('base64'))
+                    .set('Authorization', 'Basic ' + Buffer.from(':').toString('base64'))
                     .end(function (err, res) {
                         expect(res.status).equal(401, err);
                         done();

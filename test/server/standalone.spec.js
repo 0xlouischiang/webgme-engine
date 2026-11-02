@@ -315,7 +315,7 @@ describe('standalone server', function () {
                     redirectText = requestTest.redirectUrl ? ' redirects to ' + requestTest.redirectUrl : ' ';
                 it('returns ' + requestTest.code + ' for ' + url + redirectText, function (done) {
                     // TODO: add POST/DELETE etc support
-                    agent.get(serverBaseUrl + url).end(function (err, res) {
+                    agent.get(serverBaseUrl + url).buffer(true).end(function (err, res) {
                         if (err && err.message.indexOf('connect ECONNREFUSED') > -1) {
                             //console.log('Is server running?', server.isRunning());
                             done(err);
@@ -591,7 +591,8 @@ describe('standalone server', function () {
 
         describe('logOutUrl set to absolute', function () {
             var server,
-                logOutUrl = 'https://google.com/';
+                // Check the redirect itself; no public network or third-party response is required.
+                logOutUrl = 'https://example.invalid/';
 
             before(function (done) {
                 // we have to set the config here
@@ -609,11 +610,10 @@ describe('standalone server', function () {
             });
 
             it('should redirect to given logOutUrl when no referrer set', function (done) {
-                agent.get(serverBaseUrl + '/logout').end(function (err, res) {
+                agent.get(serverBaseUrl + '/logout').redirects(0).end(function (err, res) {
                     try {
-                        expect(err).to.equal(null);
-                        expect(res.status).to.equal(200);
-                        expect(res.redirects[0]).to.equal(logOutUrl);
+                        expect(res.status).to.equal(302);
+                        expect(res.headers.location).to.equal(logOutUrl);
                         done();
                     } catch (e) {
                         done(e);
@@ -622,15 +622,14 @@ describe('standalone server', function () {
             });
 
             it('should redirect to logOutUrl even when redirectUrl set', function (done) {
-                agent.get(serverBaseUrl + '/logout')
+                agent.get(serverBaseUrl + '/logout').redirects(0)
                     .query({
                         redirectUrl: '/gmeConfig.json'
                     })
                     .end(function (err, res) {
                         try {
-                            expect(err).to.equal(null);
-                            expect(res.status).to.equal(200);
-                            expect(res.redirects[0]).to.equal(logOutUrl);
+                            expect(res.status).to.equal(302);
+                            expect(res.headers.location).to.equal(logOutUrl);
                             done();
                         } catch (e) {
                             done(e);
