@@ -21,9 +21,7 @@ var path = require('path'),
     Http = require('http'),
     ejs = require('ejs'),
 
-    MongoAdapter = require('./storage/mongo'),
-    RedisAdapter = require('./storage/datastores/redisadapter'),
-    MemoryAdapter = require('./storage/memory'),
+    storageRegistry = require('./storage/registry'),
     Storage = require('./storage/safestorage'),
     WebSocket = require('./storage/websocket'),
     WebhookManager = require('./util/WebhookManager'),
@@ -628,19 +626,15 @@ function StandAloneServer(gmeConfig) {
     // FIXME: we need to connect with gmeAUTH again! start/stop/start/stop
     __gmeAuth = new GMEAUTH(null, gmeConfig);
 
+    // Types other than the built-in ones adapt GMEAuth to their user store
+    // (see ./storage/registry.js). Must run before gmeAuth.connect().
+    storageRegistry.applyAuthPatch(__gmeAuth, gmeConfig);
+
     logger.debug('initializing static server');
     __app = new Express();
 
-    if (gmeConfig.storage.database.type.toLowerCase() === 'mongo') {
-        __database = new MongoAdapter(logger, gmeConfig);
-    } else if (gmeConfig.storage.database.type.toLowerCase() === 'redis') {
-        __database = new RedisAdapter(logger, gmeConfig);
-    } else if (gmeConfig.storage.database.type.toLowerCase() === 'memory') {
-        __database = new MemoryAdapter(logger, gmeConfig);
-    } else {
-        logger.error(new Error('Unknown storage.database.type in config (config validator not used?)',
-            gmeConfig.storage.database.type));
-    }
+    // Throws for an unregistered type, naming registerDatabaseAdapter.
+    __database = storageRegistry.createDatabase(logger, gmeConfig);
 
     __storage = new Storage(__database, logger, gmeConfig, __gmeAuth);
     __webSocket = new WebSocket(__storage, logger, gmeConfig, __gmeAuth, __workerManager);

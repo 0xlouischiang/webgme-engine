@@ -247,12 +247,19 @@ exports.standaloneServer = function (gmeConfig) {
     return new Standalone(gmeConfig);
 };
 
-exports.getStorage = function (logger, gmeConfig, gmeAuth) {
-    var Mongo = require('./src/server/storage/mongo'),
-        SafeStorage = require('./src/server/storage/safestorage'),
-        mongo = new Mongo(logger, gmeConfig);
+// Storage types beyond the built-in mongo/redis/memory are registered by the
+// application (see src/server/storage/registry.js); the engine never requires
+// application code to find them.
+var storageRegistry = require('./src/server/storage/registry');
 
-    return new SafeStorage(mongo, logger, gmeConfig, gmeAuth);
+exports.registerDatabaseAdapter = storageRegistry.registerDatabaseAdapter;
+exports.registerAuthPatch = storageRegistry.registerAuthPatch;
+
+exports.getStorage = function (logger, gmeConfig, gmeAuth) {
+    var SafeStorage = require('./src/server/storage/safestorage'),
+        database = storageRegistry.createDatabase(logger, gmeConfig);
+
+    return new SafeStorage(database, logger, gmeConfig, gmeAuth);
 };
 
 exports.getGmeAuth = function (gmeConfig, callback) {
@@ -262,6 +269,8 @@ exports.getGmeAuth = function (gmeConfig, callback) {
         gmeAuth;
 
     gmeAuth = new GMEAuth(null, gmeConfig);
+    storageRegistry.applyAuthPatch(gmeAuth, gmeConfig);
+
     gmeAuth.connect(function (err) {
         if (err) {
             deferred.reject(err);

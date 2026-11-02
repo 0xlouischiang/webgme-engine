@@ -59,6 +59,31 @@ function GMEAuth(session, gmeConfig) {
         // JWT Keys
         PUBLIC_KEY;
 
+    // Extension points for storage types registered with
+    // webgme.registerAuthPatch (see ../../storage/registry.js). A patch that
+    // keeps users and projects outside MongoDB replaces connect()/unload() and
+    // hands its collections over with setCollections().
+    this.tokenGenerator = tokenGenerator;
+    this.authorizer = authorizer;
+
+    /**
+     * Use these user and project collections instead of MongoDB's.
+     * Each must be a promise for the collection that also carries the
+     * collection methods gmeauth calls (findOne, find, insertOne, insertMany,
+     * updateOne, updateMany, deleteOne, deleteMany), as connect() builds them.
+     *
+     * @param {object} collections
+     * @param {object} collections.users     - the '_users' collection
+     * @param {object} collections.projects  - the '_projects' collection
+     */
+    this.setCollections = function (collections) {
+        if (!collections || !collections.users || !collections.projects) {
+            throw new Error('setCollections needs {users, projects}');
+        }
+        collection = collections.users;
+        projectCollection = collections.projects;
+    };
+
     EventDispatcher.call(this);
 
     if (gmeConfig.authentication.enable === true) {

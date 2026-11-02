@@ -292,7 +292,9 @@ function validateConfig(configOrFileName) {
     assertNumber('config.storage.loadBucketTimer', config.storage.loadBucketTimer);
     assertEnum('config.storage.keyType', config.storage.keyType, 'rand160Bits', 'ZSSHA', 'plainSHA1');
     assertObject('config.storage.database', config.storage.database);
-    assertEnum('config.storage.database.type', config.storage.database.type.toLowerCase(), 'mongo', 'redis', 'memory');
+    // Built-in types plus any registered with webgme.registerDatabaseAdapter.
+    assertEnum.apply(null, ['config.storage.database.type', config.storage.database.type.toLowerCase()]
+        .concat(require('../src/server/storage/registry').knownTypes()));
     assertObject('config.storage.database.options', config.storage.database.options);
     assertBoolean('config.storage.disableHashChecks', config.storage.disableHashChecks);
     assertBoolean('config.storage.requireHashesToMatch', config.storage.requireHashesToMatch);
