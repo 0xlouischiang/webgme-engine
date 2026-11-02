@@ -32,8 +32,10 @@ var BlobS3Backend = function (gmeConfig, logger) {
     AWS.config.update(this.awsConfig);
     this.s3 = new AWS.S3();
 
-    // also tried creating an `EndPoint`:
-    this.s3.endpoint = new AWS.Endpoint(this.awsConfig.endpoint);
+    // only set a custom endpoint when one is explicitly configured
+    if (this.awsConfig.endpoint) {
+        this.s3.endpoint = new AWS.Endpoint(this.awsConfig.endpoint);
+    }
 
     // Uncomment to create buckets at start-up when developing
     // [this.tempBucket, this.contentBucket, this.metadataBucket].forEach( bucket => {

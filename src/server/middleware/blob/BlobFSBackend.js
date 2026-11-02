@@ -47,13 +47,10 @@ BlobFSBackend.prototype.putObject = function (readStream, bucket, callback) {
 
         var writeStream = fs.createWriteStream(tempName);
 
-        writeStream.on('close', function () {
+        writeStream.on('finish', function () {
             writeStreamWasClosed = true;
-            self.logger.debug('writeStream on close, was read closed?', readStreamWasClosed);
-            if (readStreamWasClosed) {
-                callback(new Error('ReadStream was closed while writing file!'));
-                return;
-            }
+            self.logger.debug('writeStream on finish, was read closed?', readStreamWasClosed);
+            // If we reached 'finish', the write was successful regardless of readStream state
             // at this point the temporary file have been written out
             // now the file have been written out
             // finalizing hash and moving temporary file..

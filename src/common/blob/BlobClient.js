@@ -249,12 +249,13 @@ define([
             req;
         // FIXME: in production mode do not indent the json file.
         this.logger.debug('putMetadata', {metadata: metadataDescriptor});
-        if (typeof Blob !== 'undefined') {
-            blob = new Blob([JSON.stringify(metadata.serialize(), null, 4)], {type: 'text/plain'});
+        var jsonStr = JSON.stringify(metadata.serialize(), null, 4);
+        if (typeof window !== 'undefined' && typeof Blob !== 'undefined') {
+            blob = new Blob([jsonStr], {type: 'text/plain'});
             contentLength = blob.size;
         } else {
-            blob = Buffer.from(JSON.stringify(metadata.serialize(), null, 4), 'utf8');
-            contentLength = blob.length;
+            blob = jsonStr;
+            contentLength = Buffer.byteLength(jsonStr, 'utf8');
         }
 
         req = superagent.post(this.getCreateURL(metadataDescriptor.name, true));
