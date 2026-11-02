@@ -420,6 +420,24 @@ define([
             rejoinData.watcherId = watcherId;
 
             return self.webSocket.watchDocument(rejoinData)
+                .catch(function (err) {
+                    // Server restarted — document room was closed. Fall back to a fresh join.
+                    if (err && typeof err === 'string' && err.indexOf('Document room was closed') !== -1) {
+                        self.logger.warn('rejoinWatcherRooms: room closed after restart, fresh join', docId);
+                        var freshJoin = _splitDocId(docId);
+                        freshJoin.join = true;
+                        freshJoin.sessionId = self.watchers.sessionId;
+                        freshJoin.watcherId = watcherId;
+                        return self.webSocket.watchDocument(freshJoin)
+                            .then(function (initData) {
+                                self.watchers.documents[docId][watcherId].otClient.revision = initData.revision;
+                                self.watchers.documents[docId][watcherId].awaitingAck = null;
+                                self.watchers.documents[docId][watcherId].applyBuffer = [];
+                                return { operations: [], clients: initData.clients };
+                            });
+                    }
+                    throw err;
+                })
                 .then(function (joinData) {
                     var deferred = Q.defer(),
                         awaiting = self.watchers.documents[docId][watcherId].awaitingAck,
