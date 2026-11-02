@@ -1,8 +1,8 @@
 /* eslint-env node */
 'use strict';
 const assert = require('assert');
-const { execFileSync } = require('child_process');
-const packed = JSON.parse(execFileSync(process.execPath, [require.resolve('npm/bin/npm-cli.js'), 'pack', '--dry-run', '--json', '--ignore-scripts'], { encoding: 'utf8' }))[0];
+const { execSync } = require('child_process');
+const packed = JSON.parse(execSync('npm pack --dry-run --json --ignore-scripts', { encoding: 'utf8' }))[0];
 const files = packed.files.map(f => f.path);
 assert(files.includes('LICENSE'));
 assert(files.includes('dist/webgme.classes.build.js'));
