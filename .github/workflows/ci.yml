@@ -32,10 +32,13 @@ jobs:
           node-version: 18
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - run: node -e "require('./utils/prepublish')(false)"
+        env:
+          TEST_FOLDER: core
       - if: matrix.group == 'core'
-        run: node node_modules/mocha/bin/mocha --exit --timeout 10000 --recursive test/addon test/bin test/config test/common test/issue test/plugin test/seeds test/client
+        run: node utils/test-ci.js core
       - if: matrix.group == 'server'
-        run: node node_modules/mocha/bin/mocha --exit --timeout 10000 --recursive test/server
+        run: node utils/test-ci.js server
   registration:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

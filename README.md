@@ -16,7 +16,13 @@ The DynamoDB adapter remains in the consuming DSS application.
 Node.js 18 or later is required. Install with `npm ci` and run `npm test` with
 disposable MongoDB 4.4 and Redis services. `npm run test:registration` needs no
 database. GitHub Actions runs the upstream Node suites in separate jobs plus the
-registration tests. Karma browser tests are separate from the upstream Node
+registration tests. Each spec runs in its own process to prevent legacy fixture
+state from contaminating later specs. The upstream ExecutorPlugin spec is
+excluded: its generated example uses Python 2 binary JSON output and the retired
+executor worker shutdown lifecycle (observed timeouts on Node 18). Its path is
+`test/plugin/coreplugins/ExecutorPlugin/ExecutorPlugin.spec.js`; other executor
+client/server tests still run. CI generates REST docs explicitly, without an
+install hook. Karma browser tests are separate from the upstream Node
 suite and are not run by this workflow; they need a browser/display and the
 legacy Karma browser harness.
 
