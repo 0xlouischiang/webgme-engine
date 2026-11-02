@@ -986,6 +986,9 @@ function StandAloneServer(gmeConfig) {
         getGmeConfig: function () {
             return gmeConfig;
         },
+        getApp: function () {
+            return __app;
+        },
         start: start,
         stop: stop,
         _setIsRunning: function (value) {
