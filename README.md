@@ -1,3 +1,36 @@
+# DSS engine fork
+
+This is a fork of [webgme/webgme-engine](https://github.com/webgme/webgme-engine),
+based on upstream tag **v2.22.2**. Upstream history and its MIT license are retained.
+The `dss/2.22.x` branch carries four application-independent patches:
+
+1. Injectable storage adapters, registered-type validation, and the GMEAuth extension point.
+2. Rejoin document rooms after a server restart.
+3. Blob client, filesystem, and S3 backend fixes used by DSS.
+4. `standaloneServer.getApp()` for HTTP/Lambda wrappers.
+
+The DynamoDB adapter remains in the consuming DSS application.
+
+## Distribution and development
+
+Node.js 18 or later is required. Install with `npm ci` and run `npm test` with
+disposable MongoDB 4.4 and Redis services. `npm run test:registration` needs no
+database. GitHub Actions runs the upstream Node suites in separate jobs plus the
+registration tests. Karma browser tests are separate from the upstream Node
+suite and are not run by this workflow; they need a browser/display and the
+legacy Karma browser harness.
+
+Generated browser libraries and `dist/` are committed. Installation performs no
+browserify work. After upgrading browser libraries run `npm run build:libs`
+deliberately and commit the resulting assets. Preserve the MIT license.
+`npm pack --dry-run` must contain runtime assets and exclude tests, docs and all
+example keys. Consuming applications must configure their own JWT key paths.
+
+Release only after CI is green: tag `v2.22.2-dss.1`, then update the consuming
+application's exact git tag and lockfile. Do not retag a released version.
+
+---
+
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/webgme/webgme-engine.svg?branch=master)](https://travis-ci.org/webgme/webgme-engine)
 [![Version](https://badge.fury.io/js/webgme-engine.svg)](https://www.npmjs.com/package/webgme-engine)

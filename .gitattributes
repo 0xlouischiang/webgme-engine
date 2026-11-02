@@ -1,1 +1,6 @@
-package.json text eol=lf
+* text=auto eol=lf
+*.webgmex binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.gif binary

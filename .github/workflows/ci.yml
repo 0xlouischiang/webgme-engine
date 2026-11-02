@@ -1,0 +1,50 @@
+name: engine-ci
+on:
+  push:
+    branches: ['dss/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  upstream:
+    name: upstream (${{ matrix.group }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [core, server]
+    services:
+      mongo:
+        image: mongo:4.4
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongo --quiet --eval 'db.runCommand({ping: 1})'"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:6-alpine
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - if: matrix.group == 'core'
+        run: node node_modules/mocha/bin/mocha --exit --timeout 10000 --recursive test/addon test/bin test/config test/common test/issue test/plugin test/seeds test/client
+      - if: matrix.group == 'server'
+        run: node node_modules/mocha/bin/mocha --exit --timeout 10000 --recursive test/server
+  registration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:registration
+      - run: node utils/check-package.js
